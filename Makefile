@@ -1,7 +1,5 @@
 # Simple Makefile
-
 MAIN = conchfetch.py
-TEST = distro_test.py
 NAME = conchfetch
 TESTNAME = conchfetch-test
 PROJECT_DIR = $(realpath .)
@@ -11,8 +9,6 @@ PROJECT_DIR = $(realpath .)
 help:
 	@echo "make install   - Install $(NAME) & $(TESTNAME)"
 	@echo "make uninstall - Uninstall both commands"
-	@echo "make run       - Run $(NAME) locally"
-	@echo "make test      - Run tests locally"
 	@echo "make clean     - Clean temp files"
 
 install:
@@ -33,14 +29,6 @@ uninstall:
 	sudo rm -f /usr/local/bin/$(NAME)
 	sudo rm -f /usr/local/bin/$(TESTNAME)
 	@echo "Removed!"
-
-run:
-	@echo "Running $(NAME)..."
-	python3 $(MAIN)
-
-test:
-	@echo "Running tests..."
-	python3 $(TEST)
 
 clean:
 	@echo "Cleaning temp files..."

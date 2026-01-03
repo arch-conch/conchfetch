@@ -4,41 +4,52 @@ import os
 import platform
 from typing import Dict
 
-version = 1.0
+# Colors (can be changed)
+color_start = "\033[1;36m"  # Cyan
+color_end = "\033[0m"
+
+meminfo = {}
+
+result = subprocess.run(['df', '-h', '/'], capture_output=True, text=True)
+lines = result.stdout.strip().split('\n')
+parts = lines[1].split()
+
+#conchfetch version
+version = 1.1
 
 logos = {
-        'arch': """
+        'arch': f""" {color_start}
          █████╗ ██████╗  ██████╗██╗  ██╗
         ██╔══██╗██╔══██╗██╔════╝██║  ██║
         ███████║██████╔╝██║     ███████║
         ██╔══██║██╔══██╗██║     ██╔══██║
         ██║  ██║██║  ██║╚██████╗██║  ██║
         ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
-        """,
-        'debian': """
+        {color_end}""",
+        'debian': f""" {color_start}
         ██████╗ ███████╗██████╗ ██╗ █████╗ ███╗   ██╗
         ██╔══██╗██╔════╝██╔══██╗██║██╔══██╗████╗  ██║
         ██║  ██║█████╗  ██████╔╝██║███████║██╔██╗ ██║
         ██║  ██║██╔══╝  ██╔══██╗██║██╔══██║██║╚██╗██║
         ██████╔╝███████╗██████ ║██║██║  ██║██║ ╚████║
         ╚═════╝ ╚══════╝╚══════╝╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝
-        """,
-        'ubuntu': """
+        {color_end}""",
+        'ubuntu': f"""{color_start}
         ██╗   ██╗██████╗ ██╗   ██╗███╗   ██╗████████╗██╗   ██╗
         ██║   ██║██╔══██╗██║   ██║████╗  ██║╚══██╔══╝██║   ██║
         ██║   ██║██████╔╝██║   ██║██╔██╗ ██║   ██║   ██║   ██║
         ██║   ██║██╔══██╗██║   ██║██║╚██╗██║   ██║   ██║   ██║
         ╚██████╔╝██████╔╝╚██████╔╝██║ ╚████║   ██║   ╚██████╔╝
          ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝    ╚═════╝
-        """,
-        'default': """
+        {color_end}""",
+        'default': f""" {color_start}
         ██╗     ██╗███╗   ██╗██╗   ██╗██╗  ██╗
         ██║     ██║████╗  ██║██║   ██║╚██╗██╔╝
         ██║     ██║██╔██╗ ██║██║   ██║ ╚███╔╝ 
         ██║     ██║██║╚██╗██║██║   ██║ ██╔██╗ 
         ███████╗██║██║ ╚████║╚██████╔╝██╔╝ ██╗
         ╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝
-        """
+        {color_end}"""
     }
 
 def get_distro_name() -> str:
@@ -153,12 +164,12 @@ def get_cpu_info() -> str:
     return "Unknown CPU"
 
 
-def get_memory_info() -> Dict[str, float]:
+def get_ram_info() -> Dict[str, float]:
     # Get memory information in MB
     try:
         with open('/proc/meminfo', 'r') as f:
             lines = f.readlines()
-            meminfo = {}
+
             for line in lines:
                 if 'MemTotal' in line or 'MemAvailable' in line or 'SwapTotal' in line:
                     key, value = line.split(':')
@@ -176,11 +187,11 @@ def get_memory_info() -> Dict[str, float]:
 def get_disk_usage() -> str:
     # Get disk usage information
     try:
-        result = subprocess.run(['df', '-h', '/'], capture_output=True, text=True)
+
         if result.returncode == 0:
-            lines = result.stdout.strip().split('\n')
+
             if len(lines) > 1:
-                parts = lines[1].split()
+
                 if len(parts) >= 5:
                     return f"{parts[4]} used ({parts[2]}/{parts[1]})"
     except:
@@ -297,32 +308,72 @@ def get_resolution() -> str:
     return "Not detected"
 
 
+distro = get_distro_name()
+kernel = get_kernel_version()
+host = get_hostname()
+uptime = get_uptime()
+packages = get_packages_count()
+shell = get_shell()
+terminal = get_terminal()
+cpu = get_cpu_info()
+ram = get_ram_info()
+disk = get_disk_usage()
+gpu = get_gpu_info()
+resolution = get_resolution()
+
+#get info
+used_ram = ram['total'] - ram['available']
+ram_perc = (used_ram / ram['total']) * 100 if ram['total'] > 0 else 0
+
+#RAM fullness scale
+def ram_perc_bar():
+    if ram_perc <= 5:
+       return "[:█-:--:--:--:--:--:--:--:--:--:] "
+    elif ram_perc <= 10:
+       return "[:██:--:--:--:--:--:--:--:--:--:] "
+    elif ram_perc <= 15:
+       return "[:██:█-:--:--:--:--:--:--:--:--:] "
+    elif ram_perc <= 20:
+       return "[:██:██:--:--:--:--:--:--:--:--:] "
+    elif ram_perc <= 25:
+       return "[:██:██:█-:--:--:--:--:--:--:--:] "
+    elif ram_perc <= 30:
+       return "[:██:██:██:--:--:--:--:--:--:--:] "
+    elif ram_perc <= 35:
+       return "[:██:██:██:█-:--:--:--:--:--:--:] "
+    elif ram_perc <= 40:
+       return "[:██:██:██:██:--:--:--:--:--:--:] "
+    elif ram_perc <= 45:
+       return "[:██:██:██:██:█-:--:--:--:--:--:] "
+    elif ram_perc <= 50:
+       return "[:██:██:██:██:██:--:--:--:--:--:] "
+    elif ram_perc <= 55:
+       return "[:██:██:██:██:██:█-:--:--:--:--:] "
+    elif ram_perc <= 60:
+       return "[:██:██:██:██:██:██:--:--:--:--:] "
+    elif ram_perc <= 65:
+       return "[:██:██:██:██:██:██:█-:--:--:--:] "
+    elif ram_perc <= 70:
+       return "[:██:██:██:██:██:██:██:--:--:--:] "
+    elif ram_perc <= 75:
+       return "[:██:██:██:██:██:██:██:█-:--:--:] "
+    elif ram_perc <= 80:
+       return "[:██:██:██:██:██:██:██:██:--:--:] "
+    elif ram_perc <= 85:
+       return "[:██:██:██:██:██:██:██:██:█-:--:] "
+    elif ram_perc <= 90:
+       return "[:██:██:██:██:██:██:██:██:██:--:] "
+    elif ram_perc <= 95:
+       return "[:██:██:██:██:██:██:██:██:██:█-:] "
+    elif ram_perc <= 100:
+       return "[:██:██:██:██:██:██:██:██:██:██:] "
+
+
+# Main function to print information
 def print_info():
-    # Main function to print information
     print_logo()
-
-    # Colors (can be changed)
-    color_start = "\033[1;36m"  # Cyan
-    color_end = "\033[0m"
-
-    distro = get_distro_name()
-    kernel = get_kernel_version()
-    host = get_hostname()
-    uptime = get_uptime()
-    packages = get_packages_count()
-    shell = get_shell()
-    terminal = get_terminal()
-    cpu = get_cpu_info()
-    memory = get_memory_info()
-    disk = get_disk_usage()
-    gpu = get_gpu_info()
-    resolution = get_resolution()
-
-    used_memory = memory['total'] - memory['available']
-    memory_percent = (used_memory / memory['total']) * 100 if memory['total'] > 0 else 0
-
     info_lines = [
-        f"{color_start}┌──────────────────────────────────────────────┐{color_end}",
+        f"{color_start}┌───────────────────────────────────────────────────────────────────┐{color_end}",
         f"{color_start}  OS:{color_end} {distro:50}",
         f"{color_start}  Packages:{color_end} {packages:44}",
         f"{color_start}  Host:{color_end} {host:49}",
@@ -334,13 +385,13 @@ def print_info():
         f"",
         f"{color_start}  GPU:{color_end} {gpu}",
         f"{color_start}  CPU:{color_end} {cpu[:50]:50}",
-        f"{color_start}  Mem:{color_end} {used_memory:.1f}MB / {memory['total']:.1f}MB ({memory_percent:.1f}%)",
+        f"{color_start}  RAM:{color_end} {used_ram:.1f}MB / {ram['total']:.1f}MB {ram_perc_bar()}{ram_perc:.1f}%",
         f"",
-        f"{color_start}  Swap:{color_end} {memory['swap']:.1f}MB{'' if memory['swap'] == 0 else ' available':42}",
+        f"{color_start}  Swap:{color_end} {ram['swap']:.1f}MB{'' if ram['swap'] == 0 else ' available':42}",
         f"{color_start}  Disk:{color_end} {disk:47}",
         f"",
         f"{color_start}  conchfetch version: {color_end}{version}",
-        f"{color_start}└───────────────────────────────────────────────┘{color_end}"
+        f"{color_start}└───────────────────────────────────────────────────────────────────┘{color_end}"
     ]
 
     for line in info_lines:
@@ -349,4 +400,3 @@ def print_info():
 
 if __name__ == "__main__":
     print_info()
-    quit()
